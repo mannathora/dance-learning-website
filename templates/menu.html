@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Learning Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='background.css') }}">
+    <style>
+        video {
+      border-radius: 10px !important;
+    }
+
+    /* Apply rounded corners to the image element */
+    img {
+      border-radius: 10px;
+    }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .miniature-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .miniature {
+            margin: 0 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+            perspective: 1000px; /* Adding perspective for depth effect */
+        }
+
+        .miniature:hover {
+            transform: scale(1.05);
+        }
+
+        .miniature img {
+            max-width: 100%;
+
+        }
+
+        .miniature video {
+            max-width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            transform: translateZ(20px); /* Move the video slightly forward for depth */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow background */
+
+        }
+
+        .miniature:hover video {
+            display: block;
+        }
+
+        .miniature-title {
+            font-size: 16px;
+            font-weight: bold; /* Make it bold */
+            color: #fff;
+            margin-top: 10px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Add text shadow for a cooler effect */
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        <h1>Choose the dance!</h1>
+    </div>
+    <div class="miniature-container">
+        <span id="dance_1" onclick="transitionToPage('/calibrate')">
+            <div class="miniature" onmouseover="startVideo('video1');" onmouseout="stopVideo('video1')">
+                <div class="video-mask">
+                <video id="video1" width="360" style="border-radius: 10px;">
+                    <source src="{{ url_for('static', filename='/data/dance_videos/dance_1.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video></div>
+                <img src="{{ url_for('static', filename='/data/dance_videos/dance_preview_1.png') }}" width="360" alt="Dance 1">
+                <p class="miniature-title">Oops!…I Did It Again - Britney Spears</p>
+            </div>
+        </span>
+
+
+        <span id="dance_2" onclick="transitionToPage('/calibrate')">
+            <div class="miniature" onmouseover="startVideo('video2');" onmouseout="stopVideo('video2')">
+                <div class="video-mask">
+                <video id="video2" width="360">
+                    <source src="{{ url_for('static', filename='/data/dance_videos/dance_2.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video></div>
+                <img src="{{ url_for('static', filename='/data/dance_videos/dance_preview_2.png') }}" width="360" alt="Dance 2">
+                <p class="miniature-title">Take You Dancing - Jason Derulo</p>
+            </div>
+        </span>
+
+        <span id="dance_3" onclick="transitionToPage('/calibrate')">
+            <div class="miniature" onmouseover="startVideo('video3');" onmouseout="stopVideo('video3')">
+                <div class="video-mask">
+                <video id="video3" width="360">
+                    <source src="{{ url_for('static', filename='/data/dance_videos/dance_3.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video></div>
+                <img src="{{ url_for('static', filename='/data/dance_videos/dance_preview_3.png') }}" width="360" alt="Dance 3">
+                <p class="miniature-title">Scream - Usher</p>
+            </div>
+        </span>
+
+        <span id="dance_4" onclick="transitionToPage('/calibrate')">
+            <div class="miniature" onmouseover="startVideo('video4');" onmouseout="stopVideo('video4')">
+                <div class="video-mask">
+                <video id="video4" width="360">
+                    <source src="{{ url_for('static', filename='/data/dance_videos/dance_4.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video></div>
+                <img src="{{ url_for('static', filename='/data/dance_videos/dance_preview_4.png') }}" width="360" alt="Dance 4">
+                <p class="miniature-title">Goo Goo Muck - The Cramps</p>
+            </div>
+        </span>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        function resetVideo(video) {
+            video.currentTime = 0;
+        }
+
+        function startVideo(id) {
+            const video = document.getElementById(id);
+            video.currentTime = 0;
+            video.play();
+        }
+
+        function stopVideo(id) {
+            const video = document.getElementById(id);
+            video.pause();
+        }
+
+        document.getElementById('dance_1').addEventListener('click', function() {
+        localStorage.setItem('clickedItem', 'dance_1');
+
+        fetch('/get_dance_name', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        clickedItem: localStorage.getItem('clickedItem'),
+    }),
+});
+
+
+
+    });
+
+document.getElementById('dance_2').addEventListener('click', function() {
+        localStorage.setItem('clickedItem', 'dance_2');
+
+        fetch('/get_dance_name', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        clickedItem: localStorage.getItem('clickedItem'),
+    }),
+});
+});
+
+document.getElementById('dance_3').addEventListener('click', function() {
+        localStorage.setItem('clickedItem', 'dance_3');
+
+        fetch('/get_dance_name', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        clickedItem: localStorage.getItem('clickedItem'),
+    }),
+});
+});
+
+document.getElementById('dance_4').addEventListener('click', function() {
+        localStorage.setItem('clickedItem', 'dance_4');
+
+        fetch('/get_dance_name', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        clickedItem: localStorage.getItem('clickedItem'),
+    }),
+});
+});
+
+    </script>
+
+</body>
+</html>

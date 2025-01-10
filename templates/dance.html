@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dance Learning Application</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='background.css') }}">
+    <style>
+        video {
+      border-radius: 10px;
+    }
+
+    /* Apply rounded corners to the image element */
+    img {
+      border-radius: 10px;
+    }
+    #menu-button {
+        z-index: 3;
+    }
+
+    .move_prompt {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 52px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(99, 9, 117, 0.5);
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      z-index: 4;
+    }
+
+    #gradient-background {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(30deg, #b193be, #630975);
+      background-size: 400% 400%;
+      animation: gradientAnimation 12s linear infinite paused;
+    }
+
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 100% 0%;
+      }
+      50% {
+        background-position: 0% 100%;
+      }
+      100% {
+        background-position: 100% 0%;
+      }
+    }
+    </style>
+</head>
+<body>
+    <div id="gradient-background"></div>
+    <div class="video_container">
+        <div class="webcam_container">
+            <img id="webcam_stream" height="300">
+        </div>
+
+        <div class="dance_video_container">
+            <video id="dance_video"  height="710">
+                <source src="" type="video/mp4">
+            </video>
+        </div>
+        <div class="move_prompt" id="indicator"></div>
+        <button id="menu-button">Menu</button>
+    </div>
+
+
+    <div class="finishing-screen" id="finishing-screen" style="display: none;
+    flex-direction: column; justify-content: center;">
+        <h1>Dance Results</h1>
+        <h2 id="congratulatory-message"></h2><br>
+        <h2>Your dance performance: <span id="percent">0</span>%</h2><br>
+        <h3>Number of Excellent Moves: <span id="excellent-moves">0</span></h3>
+        <h3>Number of Good Moves: <span id="good-moves">0</span></h3>
+        <h3>Number of Ok Moves: <span id="ok-moves">0</span></h3>
+        <h3>Number of Bad Moves: <span id="bad-moves">0</span></h3>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const imgElement = document.getElementById('webcam_stream');
+        const x_button = document.getElementById('x-button');
+        const streamUrl = '/webcam_stream';
+        imgElement.src = streamUrl;
+        const eventSource = new EventSource('/point_stream');
+        const clickedItem = localStorage.getItem('clickedItem');
+        const movePrompt = document.getElementById('indicator');
+        const score = [];
+
+        eventSource.onmessage = function(event) {
+            score.push(event.data);
+        console.log(event.data);
+        updateIndicator(event.data);
+    };
+
+function showMovePrompt(message) {
+  movePrompt.textContent = message;
+  movePrompt.style.opacity = 1;
+
+  // Hide the move prompt after 1 second
+  setTimeout(() => {
+    movePrompt.style.opacity = 0;
+  }, 1000);
+}
+
+let animationDuration = 20;
+  let realAnimationDuration = 20;
+
+  function moveColorUp() {
+      animationDuration -= 4;
+      realAnimationDuration -= 4;
+      realAnimationDuration = Math.max(realAnimationDuration, 0);
+      animationDuration = Math.max(animationDuration, 3);
+
+      const gradientBackground = document.getElementById('gradient-background');
+      gradientBackground.style.animation = `gradientAnimation ${animationDuration}s linear infinite`;
+  }
+
+  function moveColorDown() {
+      animationDuration += 4;
+      realAnimationDuration += 4;
+      realAnimationDuration = Math.min(realAnimationDuration, 24);
+      animationDuration = Math.min(animationDuration, 20);
+
+      const gradientBackground = document.getElementById('gradient-background');
+      gradientBackground.style.animation = `gradientAnimation ${animationDuration}s linear infinite`;
+      if (realAnimationDuration > 20) {
+      gradientBackground.style.animationPlayState = 'paused';
+    } else {
+      gradientBackground.style.animationPlayState = 'running';
+    }
+  }
+
+
+
+
+
+if (clickedItem) {
+    // Set the video source based on the clicked item
+    const videoElement = document.getElementById('dance_video');
+    let a = "/data/dance_videos/"+clickedItem;
+    videoElement.src = `{{ url_for('static', filename='') }}${a}.mp4`;
+    videoElement.load(); // Reload the video element
+}
+
+        let goodMoves = 0;
+        let excellentMoves = 0;
+        let badMoves = 0;
+        let okMoves = 0;
+
+
+
+
+        const videoElement = document.getElementById('dance_video');
+        setTimeout(() => {
+    videoElement.play();
+}, 1000);
+        videoElement.addEventListener('play', function() {
+
+        // When the video starts playing, send a request to the Flask server
+        fetch('/video_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: '!VIDEO_START' }),
+        });
+    });
+
+        function updateIndicator(moveQuality) {
+            if (moveQuality <= 10) {
+                excellentMoves++;
+                // Example usage:
+            showMovePrompt('Excellent!');
+            moveColorUp();
+            } else if (moveQuality <= 30) {
+                goodMoves++;
+                // Example usage:
+                showMovePrompt('Good!');
+                moveColorUp();
+            } else if (moveQuality <= 50) {
+                okMoves++;
+                showMovePrompt('Ok!');
+            } else {
+                badMoves++;
+                showMovePrompt('Try harder!');
+                moveColorDown();
+            }
+/*
+            // Trigger the fade-out effect
+            indicator.style.opacity = 1;
+            setTimeout(() => {
+                indicator.style.opacity = 0;
+            }, 1000); // Adjust the delay (in milliseconds) as needed
+            */
+        }
+
+        videoElement.addEventListener('ended', () => {
+            fetch('/video_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: '!VIDEO_END' }),
+        });
+        setTimeout( () =>{
+            // Hide the video and show the finishing screen
+            videoElement.style.display = 'none';
+            const gradientBackground = document.getElementById('gradient-background');
+            gradientBackground.style.display = 'none';
+            const finishingScreen = document.getElementById('finishing-screen');
+            finishingScreen.style.display = 'flex';
+            imgElement.style.display = "none";
+            movePrompt.style.display = "none";
+
+
+            // Display move statistics
+            document.getElementById('good-moves').textContent = goodMoves;
+            document.getElementById('excellent-moves').textContent = excellentMoves;
+            document.getElementById('bad-moves').textContent = badMoves;
+            document.getElementById('ok-moves').textContent = okMoves;
+
+
+    const totalMoves = excellentMoves + goodMoves + okMoves + badMoves;
+    const maxPerformance = 4;
+    let performancePercent;
+    if (totalMoves === 0){
+        performancePercent = 0;
+    }
+    else {
+    const performance = ((excellentMoves * 4 + goodMoves * 3 + okMoves * 2) / totalMoves);
+    performancePercent = ((performance / maxPerformance) * 100).toFixed(0);
+    }
+            const percentText = document.getElementById('percent');
+percentText.textContent = performancePercent;
+
+// Update the congratulatory message based on the performance.
+const congratulatoryMessage = document.getElementById('congratulatory-message');
+if (performancePercent >= 80) {
+    congratulatoryMessage.textContent = "Congratulations! You nailed it!";
+} else if (performancePercent >= 60) {
+    congratulatoryMessage.textContent = "Good job! Keep practicing to reach excellence!";
+} else {
+    congratulatoryMessage.textContent = "Keep practicing! You'll get better with time.";
+}
+        }, 1000);
+        });
+
+        document.getElementById('menu-button').addEventListener('click', function() {
+            window.location.href = 'menu';
+        });
+
+    </script>
+</body>
+</html>
